@@ -45,7 +45,7 @@ public class SecurityConfig {
                                 "/api/auth/register",
                                 "/api/auth/login" ,
                                 "/api/auth/refresh-token",
-                                "/api/categories"
+                                "/api/categories/**"
                                 // /register, /login, /refresh-token
                         ).permitAll()
 

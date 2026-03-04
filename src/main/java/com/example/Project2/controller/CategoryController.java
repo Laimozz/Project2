@@ -23,6 +23,11 @@ public class CategoryController {
         return new ResponseEntity<>(categoryService.getCategories(), HttpStatus.OK);
     }
 
+    @GetMapping("/categories/{id}")
+    public ResponseEntity<?> GetCategoryByID(@PathVariable Integer id){
+        return ResponseEntity.ok(categoryService.getCategoryById(id));
+    }
+
     //ADMIN API
     @PostMapping("/admin/categories")
     public ResponseEntity<?> CreateCategory(@RequestBody CategoryRequest categoryRequest){

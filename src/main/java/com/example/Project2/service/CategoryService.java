@@ -82,4 +82,13 @@ public class CategoryService {
         }
         return categoryResponses;
     }
+
+    public CategoryResponse getCategoryById(int id){
+        Category category = categoryRepository.findById(id).
+                orElseThrow(() -> new RuntimeException("NOT FOUND"));
+
+        CategoryResponse categoryResponse = new CategoryResponse(category.getId() , category.getName(), category.getDescription());
+
+        return categoryResponse;
+    }
 }
