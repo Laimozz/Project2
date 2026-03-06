@@ -72,7 +72,7 @@ public class ProductController {
 
     @GetMapping("/products/category/{categoryId}")
     public ResponseEntity<Page<ProductResponse>> getProductByCategory(
-            @PathVariable Integer id ,
+            @PathVariable("categoryId") Integer id ,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size){
         Pageable pageable = PageRequest.of(page , size);
