@@ -20,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity          // Cho phép dùng @PreAuthorize ở controller
+@EnableMethodSecurity // Cho phép dùng @PreAuthorize ở controller
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -34,16 +34,15 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/cart" ,"/api/cart/**").hasRole("USER")
                         .requestMatchers(
                                 "/api/auth/register",
-                                "/api/auth/login" ,
+                                "/api/auth/login",
                                 "/api/auth/refresh-token",
                                 "/api/categories/**",
                                 "/api/products/**"
@@ -51,11 +50,10 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // Admin only
-                        //.requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         // Các route còn lại cần login
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .formLogin(customize -> customize.disable())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

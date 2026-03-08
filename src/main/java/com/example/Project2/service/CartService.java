@@ -12,6 +12,7 @@ import com.example.Project2.repository.CartItemRepository;
 import com.example.Project2.repository.CartRepository;
 import com.example.Project2.repository.ProductRepository;
 import com.example.Project2.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -185,6 +186,7 @@ public class CartService {
      * @param username tên đăng nhập
      * @return Map chứa message thành công
      */
+    @Transactional
     public Map<String , String> clearCart(String username){
         Users users = findUserByUsername(username);
         Cart cart = getOrCreateCart(users);
