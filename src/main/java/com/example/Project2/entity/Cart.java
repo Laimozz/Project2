@@ -6,26 +6,18 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-
 @Entity
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Data
 @Builder
-public class Product {
+public class Cart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private String name;
-    private String description;
-    private BigDecimal price;
-    private Integer stock;
-    private String imageUrl;
-
     @ManyToOne
-    @JoinColumn(name = "category_id" , nullable = false)
-    private Category category;
+    @JoinColumn(name = "user_id" , nullable = false)
+    private Users user;
 }
