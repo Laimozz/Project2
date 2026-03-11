@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 
@@ -23,9 +25,18 @@ public class Product {
     private String description;
     private BigDecimal price;
     private Integer stock;
-    private String imageUrl;
+
+    // Save image directly in DB
+    private String imageName;
+    private String imageType;
+
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @JdbcTypeCode(SqlTypes.VARBINARY)
+    @Column(name = "image_data", columnDefinition = "bytea")
+    private byte[] imageData;
 
     @ManyToOne
-    @JoinColumn(name = "category_id" , nullable = false)
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 }

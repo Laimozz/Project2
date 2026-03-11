@@ -28,12 +28,20 @@ public class AdminOrderService {
     private ProductRepository productRepository;
 
 
+    private String buildProductImageUrl(Product product) {
+        if (product.getImageType() == null || product.getImageType().isBlank()) {
+            return null;
+        }
+        return "/api/products/" + product.getId() + "/image";
+    }
+
+
     private OrderItemResponse toOrderItemResponse(OrderItem item) {
         return OrderItemResponse.builder()
                 .id(item.getId())
                 .productId(item.getProduct().getId())
                 .productName(item.getProduct().getName())
-                .productImageUrl(item.getProduct().getImageUrl())
+                .productImageUrl(buildProductImageUrl(item.getProduct()))
                 .quantity(item.getQuantity())
                 .price(item.getPrice())
                 .build();

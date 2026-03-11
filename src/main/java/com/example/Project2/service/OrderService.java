@@ -47,7 +47,7 @@ public class OrderService {
                 .id(item.getId())
                 .productId(item.getProduct().getId())
                 .productName(item.getProduct().getName())
-                .productImageUrl(item.getProduct().getImageUrl())
+                .productImageUrl(buildProductImageUrl(item.getProduct()))
                 .quantity(item.getQuantity())
                 .price(item.getPrice())
                 .build();
@@ -69,6 +69,13 @@ public class OrderService {
                 .items(itemResponses)
                 .build();
     }
+    private String buildProductImageUrl(Product product) {
+        if (product.getImageType() == null || product.getImageType().isBlank()) {
+            return null;
+        }
+        return "/api/products/" + product.getId() + "/image";
+    }
+
 
     // ─── Business Methods ────────────────────────────────────
     /**

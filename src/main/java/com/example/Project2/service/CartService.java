@@ -34,6 +34,14 @@ public class CartService {
     private UserRepository userRepository;
 
 
+    private String buildProductImageUrl(Product product) {
+        if (product.getImageType() == null || product.getImageType().isBlank()) {
+            return null;
+        }
+        return "/api/products/" + product.getId() + "/image";
+    }
+
+
     private Users findUserByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppBadRequestException("Không tìm thấy user: " + username));
@@ -56,7 +64,7 @@ public class CartService {
                 .productId(item.getProduct().getId())
                 .productName(item.getProduct().getName())
                 .productPrice(item.getProduct().getPrice())
-                .productImageUrl(item.getProduct().getImageUrl())
+                .productImageUrl(buildProductImageUrl(item.getProduct()))
                 .quantity(item.getQuantity())
                 .build();
     }
