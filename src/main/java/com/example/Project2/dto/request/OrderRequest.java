@@ -20,4 +20,7 @@ public class OrderRequest {
 
     /** Ghi chú (tùy chọn) */
     private String note;
+
+    /** Phương thức thanh toán: "COD" (mặc định) hoặc "VNPAY" */
+    private String paymentMethod;
 }

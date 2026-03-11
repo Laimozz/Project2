@@ -52,6 +52,7 @@ public class AdminOrderService {
                 .shippingAddress(order.getShippingAddress())
                 .phone(order.getPhone())
                 .note(order.getNote())
+                .paymentMethod(order.getPaymentMethod())
                 .items(itemResponses)
                 .userId(order.getUser().getId())
                 .username(order.getUser().getUsername())
@@ -96,8 +97,12 @@ public class AdminOrderService {
      * Cập nhật trạng thái đơn hàng
      *
      * Luồng hợp lệ:
-     *   PENDING → CONFIRMED → SHIPPING → DELIVERED
-     *   PENDING → CANCELLED (admin cũng có thể hủy)
+     *   PENDING          → CONFIRMED | CANCELLED
+     *   AWAITING_PAYMENT → CONFIRMED | CANCELLED  (admin có thể xác nhận thủ công)
+     *   CONFIRMED        → SHIPPING  | CANCELLED
+     *   SHIPPING         → DELIVERED
+     *   DELIVERED         → (không thể chuyển)
+     *   CANCELLED         → (không thể chuyển)
      *
      * Khi CANCELLED: hoàn lại stock cho sản phẩm
      */
@@ -138,17 +143,19 @@ public class AdminOrderService {
 
     /**
      * Validate chuyển trạng thái hợp lệ:
-     *   PENDING   → CONFIRMED | CANCELLED
-     *   CONFIRMED → SHIPPING  | CANCELLED
-     *   SHIPPING  → DELIVERED
-     *   DELIVERED → (không thể chuyển)
-     *   CANCELLED → (không thể chuyển)
+     *   PENDING          → CONFIRMED | CANCELLED
+     *   AWAITING_PAYMENT → CONFIRMED | CANCELLED
+     *   CONFIRMED        → SHIPPING  | CANCELLED
+     *   SHIPPING         → DELIVERED
+     *   DELIVERED         → (không thể chuyển)
+     *   CANCELLED         → (không thể chuyển)
      */
     private void validateStatusTransition(OrderStatus current, OrderStatus next) {
         boolean valid = switch (current) {
-            case PENDING   -> next == OrderStatus.CONFIRMED || next == OrderStatus.CANCELLED;
-            case CONFIRMED -> next == OrderStatus.SHIPPING  || next == OrderStatus.CANCELLED;
-            case SHIPPING  -> next == OrderStatus.DELIVERED;
+            case PENDING          -> next == OrderStatus.CONFIRMED || next == OrderStatus.CANCELLED;
+            case AWAITING_PAYMENT -> next == OrderStatus.CONFIRMED || next == OrderStatus.CANCELLED;
+            case CONFIRMED        -> next == OrderStatus.SHIPPING  || next == OrderStatus.CANCELLED;
+            case SHIPPING         -> next == OrderStatus.DELIVERED;
             case DELIVERED, CANCELLED -> false;
         };
 

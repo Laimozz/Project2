@@ -41,13 +41,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/cart" ,"/api/cart/**").hasRole("USER")
                         .requestMatchers("/api/orders/**").hasRole("USER")
+                        .requestMatchers("/api/payment/create").hasRole("USER")
                         .requestMatchers(
                                 "/api/auth/register",
                                 "/api/auth/login",
                                 "/api/auth/refresh-token",
                                 "/api/categories/**",
-                                "/api/products/**"
-
+                                "/api/products/**",
+                                "/api/payment/callback"
                         ).permitAll()
 
                         // Admin only

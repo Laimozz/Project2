@@ -38,4 +38,10 @@ public class Order {
     private String phone;
 
     private String note;
+
+    // ── VNPay fields ──
+    private String paymentMethod;   // "COD" hoặc "VNPAY"
+
+    @Column(unique = true)
+    private String vnpTxnRef;       // Mã giao dịch VNPay (unique, nullable)
 }

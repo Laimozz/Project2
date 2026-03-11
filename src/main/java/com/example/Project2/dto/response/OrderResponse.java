@@ -22,5 +22,6 @@ public class OrderResponse {
     private String shippingAddress;
     private String phone;
     private String note;
+    private String paymentMethod;
     private List<OrderItemResponse> items;
 }

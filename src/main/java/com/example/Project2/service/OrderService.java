@@ -1,6 +1,7 @@
 package com.example.Project2.service;
 
 import com.example.Project2.Enum.OrderStatus;
+import com.example.Project2.config.VnPayConfig;
 import com.example.Project2.dto.request.OrderRequest;
 import com.example.Project2.dto.response.OrderItemResponse;
 import com.example.Project2.dto.response.OrderResponse;
@@ -64,13 +65,14 @@ public class OrderService {
                 .shippingAddress(order.getShippingAddress())
                 .phone(order.getPhone())
                 .note(order.getNote())
+                .paymentMethod(order.getPaymentMethod())
                 .items(itemResponses)
                 .build();
     }
 
     // ─── Business Methods ────────────────────────────────────
     /**
-     * POST /api/orders/checkout — Đặt hàng (COD)
+     * POST /api/orders/checkout — Đặt hàng (COD hoặc VNPAY)
      *
      * Luồng:
      * 1. Lấy Cart + CartItems của user
@@ -80,6 +82,9 @@ public class OrderService {
      * 5. Trừ stock sản phẩm
      * 6. Xóa CartItems (clear giỏ hàng)
      * 7. Trả về OrderResponse
+     *
+     * Nếu paymentMethod = "VNPAY": status = AWAITING_PAYMENT, sinh vnpTxnRef
+     * Nếu paymentMethod = "COD" (mặc định): status = PENDING
      */
     @Transactional
     public OrderResponse checkout(String username, OrderRequest request) {
@@ -105,18 +110,37 @@ public class OrderService {
                 .map(item -> item.getProduct().getPrice()
                         .multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        // 5. Tạo Order
+
+        // 5. Xác định payment method và status
+        String paymentMethod = request.getPaymentMethod();
+        if (paymentMethod == null || paymentMethod.isBlank()) {
+            paymentMethod = "COD"; // mặc định
+        }
+        paymentMethod = paymentMethod.toUpperCase();
+
+        OrderStatus initialStatus;
+        String vnpTxnRef = null;
+        if ("VNPAY".equals(paymentMethod)) {
+            initialStatus = OrderStatus.AWAITING_PAYMENT;
+            vnpTxnRef = VnPayConfig.getRandomNumber(8); // Mã 8 chữ số
+        } else {
+            initialStatus = OrderStatus.PENDING;
+        }
+
+        // 6. Tạo Order
         Order order = Order.builder()
                 .user(user)
                 .orderDate(LocalDateTime.now())
-                .status(OrderStatus.PENDING)
+                .status(initialStatus)
                 .totalPrice(totalPrice)
                 .shippingAddress(request.getShippingAddress())
                 .phone(request.getPhone())
                 .note(request.getNote())
+                .paymentMethod(paymentMethod)
+                .vnpTxnRef(vnpTxnRef)
                 .build();
         orderRepository.save(order);
-        // 6. Tạo OrderItems + trừ stock
+        // 7. Tạo OrderItems + trừ stock
         for (CartItem cartItem : cartItems) {
             Product product = cartItem.getProduct();
             OrderItem orderItem = OrderItem.builder()
@@ -130,9 +154,9 @@ public class OrderService {
             product.setStock(product.getStock() - cartItem.getQuantity());
             productRepository.save(product);
         }
-        // 7. Xóa giỏ hàng
+        // 8. Xóa giỏ hàng
         cartItemRepository.deleteByCart(cart);
-        // 8. Trả kết quả
+        // 9. Trả kết quả
         List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
         return toOrderResponse(order, orderItems);
     }
@@ -146,8 +170,8 @@ public class OrderService {
         List<Order> orders = orderRepository.findByUserOrderByOrderDateDesc(user);
 
         return orders.stream().map(order -> {
-           List<OrderItem> items = orderItemRepository.findByOrder(order);
-           return toOrderResponse(order , items);
+            List<OrderItem> items = orderItemRepository.findByOrder(order);
+            return toOrderResponse(order , items);
         }).collect(Collectors.toList());
     }
 
@@ -169,7 +193,7 @@ public class OrderService {
 
     /**
      * PUT /api/orders/{id}/cancel — Hủy đơn hàng
-     * Chỉ hủy được khi status = PENDING
+     * Chỉ hủy được khi status = PENDING hoặc AWAITING_PAYMENT
      * Hoàn lại stock cho sản phẩm
      */
     @Transactional
@@ -181,8 +205,8 @@ public class OrderService {
         if (!order.getUser().getId().equals(user.getId())) {
             throw new AppBadRequestException("Đơn hàng này không thuộc về bạn");
         }
-        // Chỉ hủy được khi PENDING
-        if (order.getStatus() != OrderStatus.PENDING) {
+        // Chỉ hủy được khi PENDING hoặc AWAITING_PAYMENT
+        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.AWAITING_PAYMENT) {
             throw new AppBadRequestException(
                     "Không thể hủy đơn hàng ở trạng thái: " + order.getStatus().name());
         }
@@ -197,5 +221,21 @@ public class OrderService {
         order.setStatus(OrderStatus.CANCELLED);
         orderRepository.save(order);
         return toOrderResponse(order, items);
+    }
+
+    /**
+     * Tìm Order theo ID (dùng cho PaymentController)
+     */
+    public Order findOrderById(Integer orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new AppBadRequestException("Không tìm thấy đơn hàng với ID: " + orderId));
+    }
+
+    /**
+     * Tìm Order theo vnpTxnRef (dùng cho VNPay callback)
+     */
+    public Order findByVnpTxnRef(String vnpTxnRef) {
+        return orderRepository.findByVnpTxnRef(vnpTxnRef)
+                .orElseThrow(() -> new AppBadRequestException("Không tìm thấy đơn hàng với mã giao dịch: " + vnpTxnRef));
     }
 }

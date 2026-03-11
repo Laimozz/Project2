@@ -17,6 +17,7 @@ public class AdminOrderResponse {
     private String shippingAddress;
     private String phone;
     private String note;
+    private String paymentMethod;
     private List<OrderItemResponse> items;
 
     // Thông tin khách hàng — chỉ có ở admin response
