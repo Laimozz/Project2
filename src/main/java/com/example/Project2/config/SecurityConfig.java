@@ -17,6 +17,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.*;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import com.example.Project2.security.RateLimitingFilter;
+
 
 @Configuration
 @EnableWebSecurity
@@ -29,6 +31,10 @@ public class SecurityConfig {
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
+
+    @Autowired
+    private RateLimitingFilter rateLimitingFilter;
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -58,6 +64,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
                 .formLogin(customize -> customize.disable())
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
