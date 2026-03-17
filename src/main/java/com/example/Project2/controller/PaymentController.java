@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "https://feforproject2.vercel.app")
 @RequestMapping("/api/payment")
 public class PaymentController {
 
