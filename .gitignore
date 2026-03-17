@@ -32,7 +32,4 @@ build/
 ### VS Code ###
 .vscode/
 
-# ⚠️ QUAN TRỌNG - Thêm những dòng này
-### Application properties (chứa thông tin nhạy cảm) ###
-src/main/resources/application.properties
-src/main/resources/application-*.properties
+
