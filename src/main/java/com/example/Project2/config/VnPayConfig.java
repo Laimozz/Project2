@@ -26,6 +26,15 @@ public class VnPayConfig {
     @Value("${vnpay.return-url}")
     private String returnUrl;
 
+    @Value("${vnpay.timezone:Asia/Ho_Chi_Minh}")
+    private String timezone;
+
+    @Value("${vnpay.expire-minutes:15}")
+    private long expireMinutes;
+
+    @Value("${app.frontend-url:https://feforproject2.vercel.app}")
+    private String frontendUrl;
+
     /**
      * Tạo chữ ký HMAC-SHA512 từ key và data
      */

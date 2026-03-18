@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -45,11 +46,12 @@ public class VnPayService {
 
         // Thời gian tạo giao dịch
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-        String createDate = LocalDateTime.now().format(formatter);
+        LocalDateTime paymentTime = LocalDateTime.now(ZoneId.of(vnPayConfig.getTimezone()));
+        String createDate = paymentTime.format(formatter);
         params.put("vnp_CreateDate", createDate);
 
         // Thời gian hết hạn (15 phút)
-        String expireDate = LocalDateTime.now().plusMinutes(15).format(formatter);
+        String expireDate = paymentTime.plusMinutes(vnPayConfig.getExpireMinutes()).format(formatter);
         params.put("vnp_ExpireDate", expireDate);
 
         // Tạo query string (đã sort) và ký HMAC-SHA512

@@ -1,6 +1,7 @@
 package com.example.Project2.controller;
 
 import com.example.Project2.Enum.OrderStatus;
+import com.example.Project2.config.VnPayConfig;
 import com.example.Project2.dto.response.PaymentResponse;
 import com.example.Project2.entity.Order;
 import com.example.Project2.entity.OrderItem;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 import java.util.Map;
@@ -32,6 +34,9 @@ public class PaymentController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private VnPayConfig vnPayConfig;
 
     @Autowired
     private OrderItemRepository orderItemRepository;
@@ -104,10 +109,14 @@ public class PaymentController {
 
         // Redirect FE → trang kết quả
         String responseCode = params.getOrDefault("vnp_ResponseCode", "99");
-        String feRedirectUrl = "http://localhost:3000/payment/result"
-                + "?vnp_ResponseCode=" + responseCode
-                + "&vnp_TxnRef=" + vnpTxnRef
-                + "&orderId=" + order.getId();
+        String feRedirectUrl = UriComponentsBuilder
+                .fromUriString(vnPayConfig.getFrontendUrl())
+                .path("/payment/result")
+                .queryParam("vnp_ResponseCode", responseCode)
+                .queryParam("vnp_TxnRef", vnpTxnRef)
+                .queryParam("orderId", order.getId())
+                .build()
+                .toUriString();
 
         return ResponseEntity.status(302)
                 .header("Location", feRedirectUrl)
